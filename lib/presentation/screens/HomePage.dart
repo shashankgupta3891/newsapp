@@ -1,7 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:newsapp/core/constants/colors.dart';
+import 'package:newsapp/core/http_client/api_repository.dart';
 import 'package:newsapp/core/http_client/http_client.dart';
+import 'package:newsapp/presentation/components/article_card.dart';
+import 'package:newsapp/provider/news_provider.dart';
+import 'package:provider/provider.dart';
 
 import '../../data_repository/local/Countries.dart';
 
@@ -21,12 +25,27 @@ class _HomePageState extends State<HomePage> {
   String _chosenValue;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+        (_) => context.read<NewsProvider>().getNewsAccordingToCurrentParams());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Provider.of<NewsProvider>(context, listen: false)
+    //     .getNewsAccordingToCurrentParams();
+  }
+
+  @override
   Widget build(BuildContext context) {
     _valueChanged(a) {
       print(a);
       widget.c.setCountry(a);
       print(widget.c.fetchCountryName());
-      setState(() {});
+      // setState(() {});
       Navigator.pop(context);
     }
 
@@ -123,64 +142,85 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20),
-        child: Column(
-          children: <Widget>[
-            SearchTextField(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Text(
-                  "Top Headlines",
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
-                ),
-                Row(
-                  children: [
-                    Text("Sort: "),
-                    DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _chosenValue,
-                        //elevation: 5,
-                        style: TextStyle(color: Colors.black),
-
-                        items: <String>['Newest', 'Popular', 'Oldest']
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        hint: Text(
-                          "Newest",
-                          style: TextStyle(
-                              // color: Colors.black,
-                              // fontSize: 16,
-                              ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await context.read<NewsProvider>().getNewsAccordingToCurrentParams();
+        },
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            children: <Widget>[
+              SearchTextField(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text(
+                    "Top Headlines",
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+                  ),
+                  Row(
+                    children: [
+                      Text("Sort: "),
+                      DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: context
+                              .watch<NewsProvider>()
+                              .currentSortType
+                              .text,
+                          style: TextStyle(color: Colors.black),
+                          items: context
+                              .read<NewsProvider>()
+                              .sortButtonItems
+                              .map<DropdownMenuItem<String>>((SortType value) {
+                            return DropdownMenuItem<String>(
+                              value: value.text,
+                              child: Text(value.displayText),
+                            );
+                          }).toList(),
+                          hint: Text(
+                            context
+                                .read<NewsProvider>()
+                                .currentSortType
+                                .displayText,
+                            style: TextStyle(
+                                // color: Colors.black,
+                                // fontSize: 16,
+                                ),
+                          ),
+                          onChanged: (String value) {
+                            print(value);
+                            context
+                                .read<NewsProvider>()
+                                .setCurrentSortType(value);
+                          },
                         ),
-                        onChanged: (String value) {
-                          setState(() {
-                            _chosenValue = value;
-                          });
-                        },
                       ),
-                    ),
+                    ],
+                  )
+                ],
+              ),
+              Consumer<NewsProvider>(builder: (context, newsprovider, _) {
+                return Column(
+                  children: [
+                    if (newsprovider.loadingState) LinearProgressIndicator(),
+                    ListView.separated(
+                        padding: EdgeInsets.symmetric(vertical: 5),
+                        physics: NeverScrollableScrollPhysics(),
+                        separatorBuilder: (context, index) => SizedBox(
+                              height: 20,
+                            ),
+                        shrinkWrap: true,
+                        itemCount: newsprovider.articlesList.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return ArticleCard(
+                            article: newsprovider.articlesList[index],
+                          );
+                        }),
                   ],
-                )
-              ],
-            ),
-            ListView.separated(
-                padding: EdgeInsets.symmetric(vertical: 5),
-                physics: NeverScrollableScrollPhysics(),
-                separatorBuilder: (context, index) => SizedBox(
-                      height: 20,
-                    ),
-                shrinkWrap: true,
-                itemCount: 5,
-                itemBuilder: (BuildContext context, int index) {
-                  return ArticleCard();
-                })
-          ],
+                );
+              })
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -239,92 +279,6 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class ArticleCard extends StatelessWidget {
-  const ArticleCard({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.width * 0.35,
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: Colors.white,
-        boxShadow: [
-          new BoxShadow(
-            color: Colors.grey.shade300,
-            blurRadius: 10.0,
-            spreadRadius: 5,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Row(
-          children: [
-            Flexible(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "NewsSource",
-                    style: TextStyle(
-                      height: 1.2,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor2,
-                    ),
-                  ),
-                  Text(
-                    "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.",
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 3,
-                    style: TextStyle(
-                      height: 1.2,
-                      // fontSize: 12,
-                      // fontWeight: FontWeight.bold,
-                      // color: Colors.grey[500],
-                    ),
-                  ),
-                  Text(
-                    "10 min ago",
-                    style: TextStyle(
-                      // height: 1.2,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(width: 10),
-            Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.30,
-              ),
-              // width:
-              clipBehavior: Clip.antiAlias,
-              decoration:
-                  BoxDecoration(borderRadius: BorderRadius.circular(10)),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: Image.network(
-                    "https://images.pexels.com/photos/2538122/pexels-photo-2538122.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
-                    fit: BoxFit.cover),
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class SearchTextField extends StatelessWidget {
   const SearchTextField({
     Key key,
@@ -333,6 +287,7 @@ class SearchTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      readOnly: true,
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.blueGrey[100].withOpacity(0.5),
@@ -350,7 +305,7 @@ class SearchTextField extends StatelessWidget {
             borderSide: BorderSide(
                 color: Colors.white, width: 0.00001, style: BorderStyle.none),
             borderRadius: BorderRadius.all(Radius.circular(5))),
-        suffixIcon: IconButton(onPressed: () {}, icon: Icon(Icons.search)),
+        suffixIcon: Icon(Icons.search),
         contentPadding:
             EdgeInsets.only(left: 15, bottom: 11, top: 11, right: 15),
       ),

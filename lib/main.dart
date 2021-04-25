@@ -42,10 +42,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         theme: lightThemeData,
-        home: HomePage(
-          title: 'MyNews',
-          c: c,
-        ),
+        home: HomePage(c: c),
       ),
     );
   }
