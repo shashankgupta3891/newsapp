@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:newsapp/core/constants/dummey_placeholders.dart';
+
 class Article {
   Article({
     this.source,
@@ -31,13 +33,14 @@ class Article {
 
   factory Article.fromJson(Map<String, dynamic> json) => Article(
         source: Source.fromJson(json["source"]),
-        author: json["author"],
-        title: json["title"],
-        description: json["description"],
-        url: json["url"],
-        urlToImage: json["urlToImage"],
-        publishedAt: DateTime.parse(json["publishedAt"]),
-        content: json["content"],
+        author: json["author"] ?? "",
+        title: json["title"] ?? "",
+        description: json["description"] ?? "",
+        url: json["url"] ?? "",
+        urlToImage: json["urlToImage"] ?? kPlaceholderImage,
+        publishedAt:
+            DateTime.parse(json["publishedAt"] ?? DateTime.now().toString()),
+        content: json["content"] ?? "",
       );
 
   Map<String, dynamic> toJson() => {
@@ -66,8 +69,8 @@ class Source {
   String toRawJson() => json.encode(toJson());
 
   factory Source.fromJson(Map<String, dynamic> json) => Source(
-        id: json["id"],
-        name: json["name"],
+        id: json["id"] ?? "",
+        name: json["name"] ?? "",
       );
 
   Map<String, dynamic> toJson() => {

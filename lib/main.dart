@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:newsapp/core/model/article_model.dart';
 import 'package:newsapp/core/theme/theme.dart';
+import 'package:newsapp/presentation/screens/display_news_screen.dart';
 import 'package:newsapp/provider/news_provider.dart';
 import 'package:provider/provider.dart';
 
-import 'data_repository/local/Countries.dart';
-import 'presentation/screens/HomePage.dart';
+import 'data_repository/local/countries.dart';
+import 'presentation/screens/home_screen.dart';
+import 'presentation/screens/search_news.dart';
 
 void main() {
   runApp(MyApp());
@@ -34,7 +37,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    Countries c = Countries(2);
+    // final ScreenArguments args =
+    // ModalRoute.of(context)!.settings.arguments as ScreenArguments;
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<NewsProvider>(
@@ -42,7 +46,24 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         theme: lightThemeData,
-        home: HomePage(c: c),
+        // home: HomeScreen(c: c),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => HomeScreen(),
+          DisplayNewsScreen.routeName: (context) => DisplayNewsScreen(),
+          SearchScreen.routeName: (context) => SearchScreen(),
+        },
+        onGenerateRoute: (settings) {
+          if (settings.name == DisplayNewsScreen.routeName) {
+            return MaterialPageRoute(
+              builder: (context) {
+                return DisplayNewsScreen();
+              },
+            );
+          }
+
+          return null;
+        },
       ),
     );
   }

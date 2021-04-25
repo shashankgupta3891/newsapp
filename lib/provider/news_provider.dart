@@ -4,6 +4,7 @@ import 'package:newsapp/core/model/article_model.dart';
 
 class NewsProvider extends ChangeNotifier {
   List<Article> _articlesList = [];
+  List<Article> _articlesListFromSearch = [];
 
   bool _loadingState = false;
 
@@ -20,6 +21,7 @@ class NewsProvider extends ChangeNotifier {
   List<SortType> get sortButtonItems => _sortButtonItems;
 
   List<Article> get articlesList => _articlesList;
+  List<Article> get articlesListFromSearch => _articlesListFromSearch;
 
   bool get loadingState => _loadingState;
 
@@ -38,22 +40,21 @@ class NewsProvider extends ChangeNotifier {
         _currentSortType = SortType.publishedAt;
     }
 
-    await getNewsAccordingToCurrentParams();
+    await getNewsArticlesFromApi();
   }
 
   void setDefaultSettingsAndGetRequest() async {
-    _currentSortType = SortType.popularity;
-    await getNewsAccordingToCurrentParams();
+    _currentSortType = SortType.publishedAt;
+    await getNewsArticlesFromApi();
   }
 
-  Future<void> getNewsAccordingToCurrentParams() async {
+  Future<void> getNewsArticlesFromApi() async {
     _loadingState = true;
     notifyListeners();
 
     final Map _queryParameters = {
       "q": "india",
       "sortBy": _currentSortType.text,
-      "pageSize": "20"
     };
 
     var responce = await BaseApiClient.get(
@@ -61,6 +62,39 @@ class NewsProvider extends ChangeNotifier {
     try {
       if (responce["status"] == "ok") {
         _articlesList = (responce["articles"] as List)
+            .map((e) => Article.fromJson(e))
+            .toList();
+      }
+    } catch (e) {
+      print(e);
+    } finally {
+      _loadingState = false;
+      notifyListeners();
+    }
+
+    print(_articlesList);
+  }
+
+  void clearSearchQuery() async {
+    _articlesListFromSearch = [];
+    notifyListeners();
+  }
+
+  Future<void> getArticlesFromQuery(String quary) async {
+    _currentSortType = SortType.publishedAt;
+    _loadingState = true;
+    notifyListeners();
+
+    final Map _queryParameters = {
+      "q": quary,
+      "sortBy": _currentSortType.text,
+    };
+
+    var responce = await BaseApiClient.get(
+        url: "/v2/everything", queryParameters: _queryParameters);
+    try {
+      if (responce["status"] == "ok") {
+        _articlesListFromSearch = (responce["articles"] as List)
             .map((e) => Article.fromJson(e))
             .toList();
       }
@@ -94,24 +128,4 @@ extension ParseString on SortType {
         return "Others";
     }
   }
-
-  // int get statusColor {
-  //   switch (this) {
-  //     case OrderStatus.draft:
-  //       return 0x80000000;
-
-  //     case OrderStatus.confirmed:
-  //       return 0xffFABC02;
-  //     case OrderStatus.accepted:
-  //       return 0xff0865B6;
-  //     case OrderStatus.ready:
-  //       return 0xff54b324;
-  //     case OrderStatus.delivered:
-  //       return 0xff54b324;
-  //     case OrderStatus.cancelled:
-  //       return 0xfff63d2e;
-  //     default:
-  //       return 0xffbd574e;
-  //   }
-  // }
 }

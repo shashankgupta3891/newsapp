@@ -9,6 +9,7 @@ abstract class BaseApiClient {
 
   static final Map _queryParameters = {
     "apiKey": "edcb41c5a0dd4c9aaf4acff2926c63dd",
+    "pageSize": "20"
   };
 
   static final http.Client _client = http.Client();
