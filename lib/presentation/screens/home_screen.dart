@@ -9,11 +9,6 @@ import 'package:provider/provider.dart';
 import '../../data_repository/local/countries.dart';
 
 class Countries {
-  int SelectedCountry;
-  Countries(int selected) {
-    SelectedCountry = selected;
-  }
-
   List<String> country = [
     "Nepal",
     "USA",
@@ -23,24 +18,29 @@ class Countries {
     "Sweden",
     "Pacific Island"
   ];
-  String fetchCountryName() {
-    return country[SelectedCountry];
+}
+
+class HomeScreen extends StatefulWidget {
+  HomeScreen({Key key}) : super(key: key);
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  void setCountry(int selected) {
+    SelectedCountry = selected;
   }
+
+  int SelectedCountry = 2;
 
   int currentCountry() {
     return SelectedCountry;
   }
 
-  void setCountry(int selected) {
-    SelectedCountry = selected;
+  String fetchCountryName() {
+    return country[SelectedCountry];
   }
-}
-
-class HomeScreen extends StatefulWidget {
-  HomeScreen({Key key}) : super(key: key);
-  final Countries c = Countries(2);
-
-  // final String title;
 
   final List<String> country = [
     "Nepal",
@@ -51,14 +51,6 @@ class HomeScreen extends StatefulWidget {
     "Sweden",
     "Pacific Island"
   ];
-
-  @override
-  _HomeScreenState createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  // TextEditingController custom = TextEditingController();
-  String _chosenValue;
 
   @override
   void initState() {
@@ -79,8 +71,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     _valueChanged(a) {
       print(a);
-      widget.c.setCountry(a);
-      print(widget.c.fetchCountryName());
+      setCountry(a);
+      print(fetchCountryName());
       // setState(() {});
       Navigator.pop(context);
     }
@@ -126,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   padding: EdgeInsets.symmetric(horizontal: 10),
                                   shrinkWrap: true,
                                   physics: ScrollPhysics(),
-                                  itemCount: widget.c.country.length,
+                                  itemCount: country.length,
                                   itemBuilder:
                                       (BuildContext context, int index) {
                                     return InkWell(
@@ -138,13 +130,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                             MainAxisAlignment.spaceBetween,
                                         children: <Widget>[
                                           Text(
-                                            widget.c.country[index],
+                                            country[index],
                                             style: TextStyle(fontSize: 16.0),
                                           ),
                                           Radio(
                                             value: index,
-                                            groupValue:
-                                                widget.c.currentCountry(),
+                                            groupValue: currentCountry(),
                                             onChanged: _valueChanged,
                                           ),
                                         ],
@@ -164,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: <Widget>[
                       Icon(Icons.location_on, size: 15),
                       Text(
-                        widget.c.fetchCountryName(),
+                        fetchCountryName(),
                         style: TextStyle(fontSize: 13),
                       ),
                     ],
