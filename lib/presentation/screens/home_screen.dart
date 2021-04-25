@@ -1,12 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:newsapp/presentation/components/article_card.dart';
-import 'package:newsapp/presentation/components/search_text_field.dart';
-import 'package:newsapp/presentation/screens/search_news.dart';
-import 'package:newsapp/provider/news_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:newsapp/presentation/components/components_src.dart';
 
-import '../../data_repository/local/countries.dart';
+import 'package:newsapp/presentation/screens/search_news.dart';
+import 'package:newsapp/provider/provider_scr.dart';
+import 'package:provider/provider.dart';
 
 class Countries {
   List<String> country = [
@@ -28,30 +26,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  void setCountry(int selected) {
-    SelectedCountry = selected;
-  }
-
-  int SelectedCountry = 2;
-
-  int currentCountry() {
-    return SelectedCountry;
-  }
-
-  String fetchCountryName() {
-    return country[SelectedCountry];
-  }
-
-  final List<String> country = [
-    "Nepal",
-    "USA",
-    "India",
-    "Sri Lanka",
-    "England",
-    "Sweden",
-    "Pacific Island"
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -69,11 +43,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    _valueChanged(a) {
-      print(a);
-      setCountry(a);
-      print(fetchCountryName());
-      // setState(() {});
+    void _valueChanged(int value) {
+      print(value);
+      context.read<LocationProvider>().setCountry(value);
+
       Navigator.pop(context);
     }
 
@@ -118,7 +91,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   padding: EdgeInsets.symmetric(horizontal: 10),
                                   shrinkWrap: true,
                                   physics: ScrollPhysics(),
-                                  itemCount: country.length,
+                                  itemCount: context
+                                      .read<LocationProvider>()
+                                      .countryNameList
+                                      .length,
                                   itemBuilder:
                                       (BuildContext context, int index) {
                                     return InkWell(
@@ -130,12 +106,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                             MainAxisAlignment.spaceBetween,
                                         children: <Widget>[
                                           Text(
-                                            country[index],
+                                            context
+                                                .read<LocationProvider>()
+                                                .countryNameList[index]
+                                                .displayText,
                                             style: TextStyle(fontSize: 16.0),
                                           ),
-                                          Radio(
+                                          Radio<int>(
                                             value: index,
-                                            groupValue: currentCountry(),
+                                            groupValue: context
+                                                .read<LocationProvider>()
+                                                .selectedCountry,
                                             onChanged: _valueChanged,
                                           ),
                                         ],
@@ -155,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: <Widget>[
                       Icon(Icons.location_on, size: 15),
                       Text(
-                        fetchCountryName(),
+                        context.watch<LocationProvider>().fetchCountryName,
                         style: TextStyle(fontSize: 13),
                       ),
                     ],

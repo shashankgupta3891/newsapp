@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:newsapp/presentation/components/article_card.dart';
-import 'package:newsapp/presentation/components/search_text_field.dart';
-import 'package:newsapp/provider/news_provider.dart';
+import 'package:newsapp/presentation/components/components_src.dart';
+import 'package:newsapp/provider/news/news_provider.dart';
 import 'package:provider/provider.dart';
 
 class SearchScreen extends StatefulWidget {

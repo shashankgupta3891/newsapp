@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 abstract class BaseApiClient {
   static final String _baseUrl = "newsapi.org";
-  static final String _urlPath = "/v2";
+  static final String _urlPath = "/v2/everything";
 
   static final Map _queryParameters = {
     "apiKey": "edcb41c5a0dd4c9aaf4acff2926c63dd",
@@ -14,10 +14,10 @@ abstract class BaseApiClient {
 
   static final http.Client _client = http.Client();
 
-  static Future<dynamic> get({String url, Map queryParameters}) async {
+  static Future<dynamic> get({Map queryParameters}) async {
     try {
-      final requestUrl =
-          Uri.https(_baseUrl, url, {...queryParameters, ..._queryParameters});
+      final requestUrl = Uri.https(
+          _baseUrl, _urlPath, {...queryParameters, ..._queryParameters});
       debugPrint(requestUrl.toString());
       final http.Response response = await _client.get(requestUrl);
       if (response.statusCode == 200) {
